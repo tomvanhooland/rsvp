@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tom's Thirtieth — RSVP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IM+Fell+English:ital@0;1&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100vh;
+      background: #111a10;
+      font-family: 'IM Fell English', Georgia, serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.22;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 400px 400px;
+      mix-blend-mode: overlay;
+    }
+
+    /* ——— Outer wrapper ——— */
+    .card-outer {
+      width: 100%;
+      max-width: 960px;
+      border: 1px solid #4a6e3a;
+      position: relative;
+    }
+
+    .card-outer::before {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border: 0.5px solid rgba(180,150,70,0.35);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ——— Two-panel layout ——— */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 540px;
+    }
+
+    /* ——— LEFT — Invitation ——— */
+    .left-panel {
+      background: #1a2e18;
+      background-image:
+        radial-gradient(ellipse at 30% 20%, rgba(60,90,40,0.5) 0%, transparent 65%),
+        radial-gradient(ellipse at 75% 85%, rgba(10,20,8,0.6) 0%, transparent 55%);
+      padding: 3.5rem 3rem 3rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      position: relative;
+      border-right: 1px solid #3a5530;
+    }
+
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 80px rgba(0,0,0,0.3);
+    }
+
+    .brass-rule {
+      width: 100%;
+      height: 0.5px;
+      background: linear-gradient(to right, transparent, #b8943a 20%, #b8943a 80%, transparent);
+      margin: 1.6rem 0 2rem;
+    }
+
+    .invited-label {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      color: #8ab070;
+      margin-bottom: 1.4rem;
+      text-align: center;
+    }
+
+    .main-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 900;
+      font-size: clamp(3.5rem, 7vw, 5.5rem);
+      color: #f0e8cc;
+      line-height: 0.92;
+      letter-spacing: 0.01em;
+      text-align: center;
+    }
+
+    .main-event {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+      color: #b8943a;
+      letter-spacing: 0.08em;
+      margin-top: 0.6rem;
+      text-align: center;
+    }
+
+    .details-block {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.4rem;
+    }
+
+    .detail-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-key {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      color: #8ab070;
+      margin-bottom: 0.25rem;
+    }
+
+    .detail-val {
+      font-family: 'IM Fell English', Georgia, serif;
+      font-size: 1.15rem;
+      color: #d8cdb0;
+      font-style: italic;
+    }
+
+    /* ——— RIGHT — Reply ——— */
+    .right-panel {
+      background: #f0e6c4;
+      background-image:
+        radial-gradient(ellipse at 20% 10%, rgba(255,250,230,0.7) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 90%, rgba(180,140,70,0.15) 0%, transparent 55%);
+      padding: 3.5rem 3rem 3rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .right-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 60px rgba(80,50,10,0.1);
+    }
+
+    .reply-label {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      color: #7a5a1a;
+      margin-bottom: 1.6rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.4rem;
+    }
+
+    .form-label {
+      font-style: italic;
+      font-size: 0.85rem;
+      color: #5c3e14;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 0.5px solid #b09050;
+      padding: 0.3rem 0;
+      font-family: 'IM Fell English', Georgia, serif;
+      font-size: 0.97rem;
+      color: #1c0e05;
+      outline: none;
+      transition: border-color 0.2s;
+      border-radius: 0;
+    }
+
+    .form-input:focus {
+      border-bottom-color: #3a2510;
+    }
+
+    .form-input::placeholder {
+      color: #c0a870;
+      font-style: italic;
+      font-size: 0.83rem;
+    }
+
+    /* ——— RSVP Toggle ——— */
+    .rsvp-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin: 0.2rem 0 0.5rem;
+    }
+
+    .rsvp-btn {
+      padding: 0.75rem 0.5rem;
+      border: 0.5px solid #a09050;
+      background: transparent;
+      font-family: 'IM Fell English', Georgia, serif;
+      font-style: italic;
+      font-size: 0.82rem;
+      color: #4a3010;
+      cursor: pointer;
+      line-height: 1.4;
+      text-align: center;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .rsvp-btn:hover {
+      background: rgba(60,40,10,0.07);
+    }
+
+    .rsvp-btn.selected-attend {
+      background: #1a2e18;
+      color: #c8d8b0;
+      border-color: #1a2e18;
+    }
+
+    .rsvp-btn.selected-decline {
+      background: #2c1a08;
+      color: #d8c8a0;
+      border-color: #2c1a08;
+    }
+
+    /* ——— Companion ——— */
+    .companion-wrap {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.4s ease, opacity 0.35s ease;
+    }
+
+    .companion-wrap.visible {
+      max-height: 100px;
+      opacity: 1;
+    }
+
+    .companion-inner {
+      padding-top: 1.2rem;
+    }
+
+    /* ——— Dispatch ——— */
+    .dispatch-btn {
+      margin-top: auto;
+      padding-top: 1.8rem;
+      width: 100%;
+    }
+
+    .dispatch-btn button {
+      width: 100%;
+      padding: 0.85rem 1.5rem;
+      border: 0.5px solid #4a3010;
+      background: transparent;
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: #4a3010;
+      cursor: pointer;
+      transition: background 0.25s, color 0.25s;
+    }
+
+    .dispatch-btn button:hover {
+      background: #2c1a08;
+      color: #d8c8a0;
+      border-color: #2c1a08;
+    }
+
+    /* ——— Thank You ——— */
+    .thankyou {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+      animation: fadeIn 0.7s ease;
+    }
+
+    .thankyou.visible {
+      display: flex;
+    }
+
+    .form-content.hidden {
+      display: none;
+    }
+
+    .thankyou-headline {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: 1.9rem;
+      font-weight: 400;
+      color: #2a1a06;
+      margin-bottom: 0.8rem;
+    }
+
+    .thankyou-body {
+      font-style: italic;
+      font-size: 0.9rem;
+      color: #6b4a18;
+      line-height: 1.75;
+      max-width: 280px;
+    }
+
+    /* ——— Bottom strip ——— */
+    .bottom-strip {
+      background: #131f11;
+      border-top: 1px solid #3a5530;
+      padding: 0.65rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .strip-rule {
+      flex: 1;
+      height: 0.5px;
+      background: linear-gradient(to right, transparent, #4a6e3a);
+    }
+
+    .strip-rule.right {
+      background: linear-gradient(to left, transparent, #4a6e3a);
+    }
+
+    .strip-text {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: #4a6e3a;
+    }
+
+    /* ——— Animations ——— */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .shake {
+      animation: shake 0.35s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25%       { transform: translateX(-4px); }
+      75%       { transform: translateX(4px); }
+    }
+
+    /* ——— Responsive ——— */
+    @media (max-width: 640px) {
+      .panels { grid-template-columns: 1fr; }
+      .left-panel { border-right: none; border-bottom: 1px solid #3a5530; }
+      .main-name { font-size: 3.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card-outer">
+
+    <div class="panels">
+
+      <!-- LEFT: Invitation -->
+      <div class="left-panel">
+        <div>
+          <p class="invited-label">You have been cordially invited to</p>
+
+          <div>
+            <h1 class="main-name">Thomas'</h1>
+            <p class="main-event">Thirtieth Birthday</p>
+          </div>
+
+          <div class="brass-rule"></div>
+        </div>
+
+        <div class="details-block">
+          <div class="detail-item">
+            <span class="detail-key">Date</span>
+            <span class="detail-val">The 14th of November, 2026</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-key">Attire</span>
+            <span class="detail-val">A Day at the Races</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-key">Location</span>
+            <span class="detail-val">To Be Announced</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Reply -->
+      <div class="right-panel">
+        <p class="reply-label">Reply Card</p>
+
+        <div class="form-content" id="formContent">
+
+          <div class="form-group">
+            <label class="form-label" for="guestName">From the desk of</label>
+            <input type="text" class="form-input" id="guestName" placeholder="Your full name" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">I hereby</label>
+            <div class="rsvp-pair">
+              <button class="rsvp-btn" id="attendBtn" onclick="selectRsvp('attend')">shall attend<br>with pleasure</button>
+              <button class="rsvp-btn" id="declineBtn" onclick="selectRsvp('decline')">must decline<br>with regret</button>
+            </div>
+          </div>
+
+          <div class="companion-wrap" id="companionWrap">
+            <div class="companion-inner">
+              <div class="form-group">
+                <label class="form-label" for="companionName">Accompanied by one companion</label>
+                <input type="text" class="form-input" id="companionName" placeholder="Their name">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="dietary">Dietary requirements</label>
+            <input type="text" class="form-input" id="dietary" placeholder="Please advise of any requirements">
+          </div>
+
+          <div class="dispatch-btn">
+            <button onclick="dispatchReply()">Dispatch Reply</button>
+          </div>
+
+        </div>
+
+        <div class="thankyou" id="thankyou">
+          <p class="thankyou-headline" id="thankyouHeadline">How delightful.</p>
+          <p class="thankyou-body" id="thankyouBody">Your reply has been received with the warmest of gratitude.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="bottom-strip">
+      <div class="strip-rule"></div>
+      <span class="strip-text">14 · 11 · 2026</span>
+      <div class="strip-rule right"></div>
+    </div>
+
+  </div>
+
+  <script>
+    var rsvpChoice = null;
+
+    function selectRsvp(choice) {
+      rsvpChoice = choice;
+      var a = document.getElementById('attendBtn');
+      var d = document.getElementById('declineBtn');
+      var cw = document.getElementById('companionWrap');
+
+      a.className = 'rsvp-btn' + (choice === 'attend' ? ' selected-attend' : '');
+      d.className = 'rsvp-btn' + (choice === 'decline' ? ' selected-decline' : '');
+
+      if (choice === 'attend') {
+        cw.classList.add('visible');
+      } else {
+        cw.classList.remove('visible');
+        document.getElementById('companionName').value = '';
+      }
+    }
+
+    function dispatchReply() {
+      var name = document.getElementById('guestName').value.trim();
+      var companion = document.getElementById('companionName').value.trim();
+      var dietary = document.getElementById('dietary').value.trim();
+
+      if (!name) {
+        var el = document.getElementById('guestName');
+        el.classList.add('shake');
+        el.focus();
+        setTimeout(function() { el.classList.remove('shake'); }, 400);
+        return;
+      }
+      if (!rsvpChoice) {
+        var pair = document.querySelector('.rsvp-pair');
+        pair.classList.add('shake');
+        setTimeout(function() { pair.classList.remove('shake'); }, 400);
+        return;
+      }
+
+      var btn = document.querySelector('.dispatch-btn button');
+      btn.textContent = 'Sending…';
+      btn.disabled = true;
+
+      var payload = {
+        Name: name,
+        RSVP: rsvpChoice === 'attend' ? 'Attending with pleasure' : 'Declining with regret',
+        Companion: companion || '—',
+        'Dietary requirements': dietary || 'None'
+      };
+
+      fetch('https://formspree.io/f/xykvgqka', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function() {
+        var fc = document.getElementById('formContent');
+        var ty = document.getElementById('thankyou');
+        var headline = document.getElementById('thankyouHeadline');
+        var body = document.getElementById('thankyouBody');
+
+        if (rsvpChoice === 'attend') {
+          headline.textContent = 'How delightful.';
+          var msg = name;
+          if (companion) msg += ' and ' + companion;
+          msg += ' — we shall look forward to your company on the fourteenth.';
+          if (dietary) msg += ' Your dietary note has been duly received.';
+          body.textContent = msg;
+        } else {
+          headline.textContent = 'A great pity.';
+          body.textContent = name + ', you shall be greatly missed. Perhaps next year.';
+        }
+
+        fc.classList.add('hidden');
+        ty.classList.add('visible');
+      })
+      .catch(function() {
+        btn.textContent = 'Something went wrong — please try again';
+        btn.disabled = false;
+      });
+    }
+  </script>
+
+</body>
+</html>

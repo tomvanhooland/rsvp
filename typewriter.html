@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typewriter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --paper: #f5f0e8;
+      --paper-dark: #ede6d3;
+      --ink: #1a1208;
+      --ink-light: #4a3c28;
+      --ink-faint: #9a8c78;
+      --accent: #7a4010;
+      --chrome: #c8b890;
+    }
+
+    html, body {
+      height: 100%;
+      background: #1a1510;
+      font-family: 'Special Elite', 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.18;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 400px 400px;
+      mix-blend-mode: overlay;
+    }
+
+    /* ——— Shell ——— */
+    .shell {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem 0;
+      position: relative;
+    }
+
+    /* ——— Platen (the paper roll bar at top) ——— */
+    .platen {
+      width: 100%;
+      max-width: 760px;
+      height: 18px;
+      background: linear-gradient(to bottom, #3a3020 0%, #5a4a30 40%, #3a3020 100%);
+      border-radius: 4px 4px 0 0;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .platen-roller {
+      width: 6px;
+      height: 10px;
+      background: #2a2018;
+      border-radius: 2px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    /* ——— Paper ——— */
+    .paper-wrap {
+      width: 100%;
+      max-width: 760px;
+      flex: 1;
+      min-height: 0;
+      background: var(--paper);
+      background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(255,255,240,0.6) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 100%, rgba(180,160,120,0.2) 0%, transparent 60%);
+      box-shadow:
+        0 0 0 1px rgba(100,80,40,0.3),
+        4px 0 20px rgba(0,0,0,0.4),
+        -4px 0 20px rgba(0,0,0,0.4),
+        inset 0 0 120px rgba(160,130,80,0.08);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Left margin rule */
+    .paper-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 88px;
+      bottom: 0;
+      width: 1px;
+      background: rgba(180,100,80,0.3);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Horizontal lines */
+    .paper-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 31px,
+        rgba(140,120,80,0.12) 31px,
+        rgba(140,120,80,0.12) 32px
+      );
+      background-position: 0 8px;
+    }
+
+    /* ——— Textarea ——— */
+    #writer {
+      position: relative;
+      z-index: 3;
+      flex: 1;
+      width: 100%;
+      padding: 2rem 3.5rem 4rem 7.5rem;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: 'Special Elite', 'Courier New', monospace;
+      font-size: 1.05rem;
+      line-height: 2rem;
+      color: var(--ink);
+      caret-color: var(--accent);
+      overflow-y: auto;
+      min-height: 0;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(140,120,80,0.3) transparent;
+      letter-spacing: 0.02em;
+    }
+
+    #writer::placeholder {
+      color: var(--ink-faint);
+      font-style: italic;
+    }
+
+    #writer::-webkit-scrollbar { width: 6px; }
+    #writer::-webkit-scrollbar-track { background: transparent; }
+    #writer::-webkit-scrollbar-thumb { background: rgba(140,120,80,0.3); border-radius: 3px; }
+
+    /* Cursor blink override */
+    #writer {
+      caret-color: #7a4010;
+    }
+
+    /* ——— Bottom bar (footer) ——— */
+    .footer {
+      width: 100%;
+      max-width: 760px;
+      background: #2a2018;
+      border-top: 1px solid #4a3a20;
+      padding: 0.55rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .footer-stats {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--chrome);
+      opacity: 0.7;
+      display: flex;
+      gap: 1.8rem;
+    }
+
+    .footer-stat span {
+      color: rgba(200,184,144,0.5);
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    .action-btn {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--chrome);
+      background: transparent;
+      border: 0.5px solid rgba(200,184,144,0.3);
+      padding: 0.3rem 0.75rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      opacity: 0.7;
+    }
+
+    .action-btn:hover {
+      background: rgba(200,184,144,0.1);
+      opacity: 1;
+    }
+
+    /* ——— Save indicator ——— */
+    .save-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(140,180,100,0.5);
+      flex-shrink: 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .save-dot.dirty {
+      background: rgba(200,140,60,0.7);
+    }
+
+    .save-dot.saving {
+      background: rgba(140,180,100,0.9);
+      box-shadow: 0 0 6px rgba(140,180,100,0.6);
+    }
+
+    /* ——— Carriage return flash ——— */
+    .cr-flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(to right, transparent 0%, rgba(180,100,60,0.7) 50%, transparent 100%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+      transform: translateY(0);
+      transition: none;
+    }
+
+    .cr-flash.flash {
+      animation: crFlash 0.25s ease-out;
+    }
+
+    @keyframes crFlash {
+      0%   { opacity: 0.9; }
+      100% { opacity: 0; }
+    }
+
+    /* ——— Bell toast ——— */
+    .bell-toast {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: rgba(200,160,80,0.9);
+      background: rgba(30,20,10,0.85);
+      border: 0.5px solid rgba(200,160,80,0.3);
+      padding: 0.4rem 0.9rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 100;
+    }
+
+    .bell-toast.show {
+      animation: toastIn 2s ease;
+    }
+
+    @keyframes toastIn {
+      0%   { opacity: 0; }
+      15%  { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ——— New doc modal ——— */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,8,4,0.8);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--paper);
+      border: 0.5px solid rgba(100,80,40,0.5);
+      padding: 2.5rem 3rem;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+
+    .modal h2 {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--ink);
+      margin-bottom: 0.8rem;
+    }
+
+    .modal p {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.8rem;
+      color: var(--ink-light);
+      margin-bottom: 1.8rem;
+      line-height: 1.6;
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+    }
+
+    .modal-btn {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      padding: 0.6rem 1.4rem;
+      border: 0.5px solid rgba(80,60,20,0.5);
+      background: transparent;
+      color: var(--ink-light);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .modal-btn:hover { background: rgba(80,60,20,0.08); }
+
+    .modal-btn.danger {
+      border-color: #7a4010;
+      color: #7a4010;
+    }
+
+    .modal-btn.danger:hover {
+      background: #7a4010;
+      color: #f5f0e8;
+    }
+
+    /* ——— Responsive ——— */
+    @media (max-width: 640px) {
+      #writer { padding: 1.5rem 1.5rem 4rem 1.5rem; }
+      .paper-wrap::before { display: none; }
+      .footer { padding: 0.5rem 1rem; }
+      .footer-stats { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="shell">
+    <div class="platen" id="platen">
+      <div class="platen-roller"></div>
+      <div class="platen-roller"></div>
+      <div class="platen-roller"></div>
+      <div class="platen-roller"></div>
+      <div class="platen-roller"></div>
+      <div class="platen-roller"></div>
+      <div class="platen-roller"></div>
+      <div class="platen-roller"></div>
+      <div class="platen-roller"></div>
+    </div>
+
+    <div class="paper-wrap">
+      <div class="cr-flash" id="crFlash"></div>
+      <textarea id="writer" spellcheck="false" autocorrect="off" autocapitalize="off"
+        placeholder="Begin typing…"></textarea>
+    </div>
+
+    <div class="footer">
+      <div class="footer-stats">
+        <div class="footer-stat"><span id="wordCount">0</span> words</div>
+        <div class="footer-stat"><span id="charCount">0</span> chars</div>
+        <div class="footer-stat"><span id="lineCount">1</span> lines</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.8rem;">
+        <div class="save-dot" id="saveDot" title="Auto-saved"></div>
+        <div class="footer-actions">
+          <button class="action-btn" onclick="exportTxt()">Export</button>
+          <button class="action-btn" onclick="confirmNew()">New</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bell-toast" id="bellToast">ding</div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2>Roll in a fresh sheet?</h2>
+      <p>Your current page will be lost. There is no undo for this.</p>
+      <div class="modal-btns">
+        <button class="modal-btn" onclick="closeModal()">Keep writing</button>
+        <button class="modal-btn danger" onclick="newDoc()">Start fresh</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ——— Web Audio ———
+    var ctx = null;
+
+    function getCtx() {
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+
+    function playKeyClick() {
+      var c = getCtx();
+      var buf = c.createBuffer(1, c.sampleRate * 0.04, c.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3);
+      }
+      var src = c.createBufferSource();
+      src.buffer = buf;
+      var gain = c.createGain();
+      gain.gain.setValueAtTime(0.18, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.04);
+      var filter = c.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 1800 + Math.random() * 400;
+      filter.Q.value = 1.5;
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(c.destination);
+      src.start();
+      src.stop(c.currentTime + 0.05);
+    }
+
+    function playCarriageReturn() {
+      var c = getCtx();
+      var dur = 0.18;
+      var buf = c.createBuffer(1, c.sampleRate * dur, c.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < data.length; i++) {
+        var t = i / c.sampleRate;
+        var env = Math.pow(1 - t / dur, 2);
+        data[i] = (Math.random() * 2 - 1) * env * 0.5 +
+                  Math.sin(2 * Math.PI * (300 + (1 - t / dur) * 200) * t) * env * 0.15;
+      }
+      var src = c.createBufferSource();
+      src.buffer = buf;
+      var gain = c.createGain();
+      gain.gain.setValueAtTime(0.22, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+      src.connect(gain);
+      gain.connect(c.destination);
+      src.start();
+      src.stop(c.currentTime + dur);
+    }
+
+    function playBell() {
+      var c = getCtx();
+      var osc = c.createOscillator();
+      var gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1760, c.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, c.currentTime + 0.6);
+      gain.gain.setValueAtTime(0.0, c.currentTime);
+      gain.gain.linearRampToValueAtTime(0.22, c.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 1.2);
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + 1.3);
+
+      // harmonic overtone
+      var osc2 = c.createOscillator();
+      var gain2 = c.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.value = 2640;
+      gain2.gain.setValueAtTime(0.0, c.currentTime);
+      gain2.gain.linearRampToValueAtTime(0.07, c.currentTime + 0.01);
+      gain2.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.5);
+      osc2.connect(gain2);
+      gain2.connect(c.destination);
+      osc2.start(c.currentTime);
+      osc2.stop(c.currentTime + 0.6);
+    }
+
+    function playBackspace() {
+      var c = getCtx();
+      var buf = c.createBuffer(1, c.sampleRate * 0.025, c.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
+      }
+      var src = c.createBufferSource();
+      src.buffer = buf;
+      var gain = c.createGain();
+      gain.gain.setValueAtTime(0.1, c.currentTime);
+      var filter = c.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 900;
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(c.destination);
+      src.start();
+      src.stop(c.currentTime + 0.03);
+    }
+
+    // ——— State ———
+    var writer = document.getElementById('writer');
+    var wordCountEl = document.getElementById('wordCount');
+    var charCountEl = document.getElementById('charCount');
+    var lineCountEl = document.getElementById('lineCount');
+    var saveDot = document.getElementById('saveDot');
+    var crFlash = document.getElementById('crFlash');
+    var bellToast = document.getElementById('bellToast');
+
+    var STORAGE_KEY = 'typewriter_draft';
+    var BELL_MARGIN = 65; // chars from line start before bell
+    var saveTimer = null;
+    var bellFired = {}; // track per-line bell
+
+    // Load saved content
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) writer.value = saved;
+    updateStats();
+
+    // ——— Keydown: sounds ———
+    writer.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        playCarriageReturn();
+        flashCR();
+        delete bellFired[getCurrentLineIndex()];
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        playBackspace();
+      } else if (e.key.length === 1) {
+        playKeyClick();
+        checkBell();
+      }
+    });
+
+    // ——— Input: stats + autosave ———
+    writer.addEventListener('input', function() {
+      updateStats();
+      markDirty();
+    });
+
+    function getCurrentLineIndex() {
+      var text = writer.value;
+      var pos = writer.selectionStart;
+      var before = text.substring(0, pos);
+      return before.split('\n').length - 1;
+    }
+
+    function getCurrentLineLength() {
+      var text = writer.value;
+      var pos = writer.selectionStart;
+      var before = text.substring(0, pos);
+      var lines = before.split('\n');
+      return lines[lines.length - 1].length;
+    }
+
+    function checkBell() {
+      var lineIdx = getCurrentLineIndex();
+      var lineLen = getCurrentLineLength();
+      if (lineLen >= BELL_MARGIN && !bellFired[lineIdx]) {
+        bellFired[lineIdx] = true;
+        playBell();
+        showBellToast();
+      }
+    }
+
+    function flashCR() {
+      crFlash.classList.remove('flash');
+      void crFlash.offsetWidth;
+      crFlash.classList.add('flash');
+    }
+
+    function showBellToast() {
+      bellToast.classList.remove('show');
+      void bellToast.offsetWidth;
+      bellToast.classList.add('show');
+      setTimeout(function() { bellToast.classList.remove('show'); }, 2000);
+    }
+
+    function updateStats() {
+      var text = writer.value;
+      var words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      var chars = text.length;
+      var lines = text ? text.split('\n').length : 1;
+      wordCountEl.textContent = words;
+      charCountEl.textContent = chars;
+      lineCountEl.textContent = lines;
+    }
+
+    function markDirty() {
+      saveDot.className = 'save-dot dirty';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(save, 1500);
+    }
+
+    function save() {
+      saveDot.className = 'save-dot saving';
+      localStorage.setItem(STORAGE_KEY, writer.value);
+      setTimeout(function() { saveDot.className = 'save-dot'; }, 600);
+    }
+
+    // ——— Export ———
+    function exportTxt() {
+      var text = writer.value;
+      if (!text.trim()) return;
+      var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var d = new Date();
+      var stamp = d.getFullYear() + '-' +
+        String(d.getMonth()+1).padStart(2,'0') + '-' +
+        String(d.getDate()).padStart(2,'0');
+      a.href = url;
+      a.download = 'typewriter-' + stamp + '.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ——— New doc ———
+    function confirmNew() {
+      if (!writer.value.trim()) { newDoc(); return; }
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      writer.focus();
+    }
+
+    function newDoc() {
+      writer.value = '';
+      bellFired = {};
+      localStorage.removeItem(STORAGE_KEY);
+      updateStats();
+      saveDot.className = 'save-dot';
+      closeModal();
+    }
+
+    // Close modal on overlay click
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        save();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        confirmNew();
+      }
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    // Auto-focus
+    writer.focus();
+  </script>
+
+</body>
+</html>
